@@ -478,3 +478,35 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Resume Links on Cards */
+.card-resumes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.resume-link {
+    font-size: 0.8rem;
+    color: var(--primary-400);
+    text-decoration: none;
+    background: rgba(139, 92, 246, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.resume-link:hover {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--primary-300);
+}

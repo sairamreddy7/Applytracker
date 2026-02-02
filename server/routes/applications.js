@@ -167,6 +167,7 @@ router.post('/', async (req, res) => {
         const {
             company_name,
             job_title,
+            experience_level,
             job_description,
             job_requirements,
             location,
@@ -192,16 +193,16 @@ router.post('/', async (req, res) => {
         // Create application
         const result = await db.query(
             `INSERT INTO job_applications 
-       (user_id, company_name, job_title, job_description, job_requirements, location, 
+       (user_id, company_name, job_title, experience_level, job_description, job_requirements, location, 
         job_url, salary_min, salary_max, application_date, application_source, status, 
         notes, follow_up_date, interview_round, interview_notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING *`,
             [
-                req.user.id, company_name, job_title, job_description || null, job_requirements || null,
-                location || null, job_url || null, salary_min || null, salary_max || null,
-                application_date || null, application_source || null, status || 'Applied',
-                notes || null, follow_up_date || null, interview_round || 0, interview_notes || null
+                req.user.id, company_name, job_title, experience_level || 'Entry Level / New Grad',
+                job_description || null, job_requirements || null, location || null, job_url || null,
+                salary_min || null, salary_max || null, application_date || null, application_source || null,
+                status || 'Applied', notes || null, follow_up_date || null, interview_round || 0, interview_notes || null
             ]
         );
 
@@ -242,6 +243,7 @@ router.put('/:id', async (req, res) => {
         const {
             company_name,
             job_title,
+            experience_level,
             job_description,
             job_requirements,
             location,
@@ -267,17 +269,17 @@ router.put('/:id', async (req, res) => {
         // Update application
         const result = await db.query(
             `UPDATE job_applications SET
-        company_name = $1, job_title = $2, job_description = $3, job_requirements = $4,
-        location = $5, job_url = $6, salary_min = $7, salary_max = $8, application_date = $9,
-        application_source = $10, status = $11, notes = $12, follow_up_date = $13,
-        interview_round = $14, interview_notes = $15
-       WHERE id = $16 AND user_id = $17
+        company_name = $1, job_title = $2, experience_level = $3, job_description = $4, job_requirements = $5,
+        location = $6, job_url = $7, salary_min = $8, salary_max = $9, application_date = $10,
+        application_source = $11, status = $12, notes = $13, follow_up_date = $14,
+        interview_round = $15, interview_notes = $16
+       WHERE id = $17 AND user_id = $18
        RETURNING *`,
             [
-                company_name, job_title, job_description || null, job_requirements || null,
-                location || null, job_url || null, salary_min || null, salary_max || null,
-                application_date || null, application_source || null, status || 'Applied',
-                notes || null, follow_up_date || null, interview_round || 0, interview_notes || null,
+                company_name, job_title, experience_level || 'Entry Level / New Grad',
+                job_description || null, job_requirements || null, location || null, job_url || null,
+                salary_min || null, salary_max || null, application_date || null, application_source || null,
+                status || 'Applied', notes || null, follow_up_date || null, interview_round || 0, interview_notes || null,
                 req.params.id, req.user.id
             ]
         );

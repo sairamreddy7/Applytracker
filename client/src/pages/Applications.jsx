@@ -430,6 +430,23 @@ function Applications() {
                                         )}
                                     </div>
 
+                                    {/* Resume Links */}
+                                    {app.resumes?.length > 0 && (
+                                        <div className="card-resumes">
+                                            {app.resumes.map(r => (
+                                                <a
+                                                    key={r.id}
+                                                    href={`/api/resumes/${r.id}/download`}
+                                                    className="resume-link"
+                                                    download
+                                                    aria-label={`Download ${r.original_name}`}
+                                                >
+                                                    📄 {r.original_name}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <div className="card-actions" role="group" aria-label={`Actions for ${app.company_name}`}>
                                         <button
                                             className="btn btn-ghost"

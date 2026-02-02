@@ -1,18 +1,98 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import './ApplicationForm.css';
 
 const STATUSES = ['Applied', 'Interview', 'Offer', 'Rejected', 'Ghosted'];
 const SOURCES = ['LinkedIn', 'Indeed', 'Company Website', 'Referral', 'Job Board', 'Recruiter', 'Other'];
 
+// CS/Tech job roles for dropdown
+const JOB_ROLES = [
+    'Software Engineer',
+    'Software Developer',
+    'Frontend Developer',
+    'Backend Developer',
+    'Full Stack Developer',
+    'Data Scientist',
+    'Data Analyst',
+    'Data Engineer',
+    'Machine Learning Engineer',
+    'AI Engineer',
+    'DevOps Engineer',
+    'Site Reliability Engineer',
+    'Cloud Engineer',
+    'Mobile Developer',
+    'iOS Developer',
+    'Android Developer',
+    'QA Engineer',
+    'Security Engineer',
+    'Product Manager',
+    'Engineering Manager',
+    'Technical Program Manager',
+    'UX Designer',
+    'UI Developer',
+    'Intern - Software Engineer',
+    'Intern - Data Science',
+    'Intern - Product',
+    'New Grad - Software Engineer',
+    'New Grad - Data Science',
+    'Other'
+];
+
+// Experience levels
+const EXPERIENCE_LEVELS = [
+    'Internship',
+    'Entry Level / New Grad',
+    'Mid Level (2-4 years)',
+    'Senior (5+ years)',
+    'Lead / Staff',
+    'Manager / Director'
+];
+
+// Top US tech cities
+const US_CITIES = [
+    'Remote',
+    'Hybrid',
+    'San Francisco, CA',
+    'San Jose, CA',
+    'Mountain View, CA',
+    'Palo Alto, CA',
+    'Sunnyvale, CA',
+    'Seattle, WA',
+    'Bellevue, WA',
+    'Redmond, WA',
+    'New York, NY',
+    'Austin, TX',
+    'Dallas, TX',
+    'Houston, TX',
+    'Boston, MA',
+    'Cambridge, MA',
+    'Los Angeles, CA',
+    'San Diego, CA',
+    'Chicago, IL',
+    'Denver, CO',
+    'Boulder, CO',
+    'Atlanta, GA',
+    'Raleigh, NC',
+    'Charlotte, NC',
+    'Phoenix, AZ',
+    'Portland, OR',
+    'Salt Lake City, UT',
+    'Washington, DC',
+    'Miami, FL',
+    'Philadelphia, PA',
+    'Minneapolis, MN'
+];
+
 function ApplicationForm() {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditing = Boolean(id);
+    const locationInputRef = useRef(null);
 
     const [formData, setFormData] = useState({
         company_name: '',
         job_title: '',
+        experience_level: 'Entry Level / New Grad',
         job_description: '',
         job_requirements: '',
         location: '',
@@ -33,6 +113,15 @@ function ApplicationForm() {
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [showDetails, setShowDetails] = useState(false);
+
+    // Location autocomplete
+    const [locationSuggestions, setLocationSuggestions] = useState([]);
+    const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+
+    // Custom job title
+    const [customJobTitle, setCustomJobTitle] = useState('');
+    const [isCustomRole, setIsCustomRole] = useState(false);
 
     useEffect(() => {
         fetchResumes();
@@ -46,10 +135,10 @@ function ApplicationForm() {
             const response = await fetch('/api/resumes', { credentials: 'include' });
             const data = await response.json();
             if (response.ok) {
-                setResumes(data.resumes);
+                setResumes(data.resumes || []);
             }
-        } catch (err) {
-            console.error('Failed to fetch resumes:', err);
+        } catch {
+            // Silent fail
         }
     };
 
@@ -60,9 +149,13 @@ function ApplicationForm() {
 
             if (response.ok) {
                 const app = data.application;
+                const jobTitle = app.job_title || '';
+                const isCustom = !JOB_ROLES.includes(jobTitle);
+
                 setFormData({
                     company_name: app.company_name || '',
-                    job_title: app.job_title || '',
+                    job_title: isCustom ? 'Other' : jobTitle,
+                    experience_level: app.experience_level || 'Entry Level / New Grad',
                     job_description: app.job_description || '',
                     job_requirements: app.job_requirements || '',
                     location: app.location || '',
@@ -78,10 +171,20 @@ function ApplicationForm() {
                     interview_notes: app.interview_notes || '',
                     resume_ids: app.resumes ? app.resumes.map(r => r.id) : []
                 });
+
+                if (isCustom) {
+                    setIsCustomRole(true);
+                    setCustomJobTitle(jobTitle);
+                }
+
+                // Show details section if there's extra data
+                if (app.job_description || app.job_requirements || app.notes) {
+                    setShowDetails(true);
+                }
             } else {
-                setError(data.error);
+                setError(data.error || 'Failed to load application');
             }
-        } catch (err) {
+        } catch {
             setError('Failed to load application');
         } finally {
             setLoading(false);
@@ -91,6 +194,36 @@ function ApplicationForm() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Handle job title "Other" selection
+        if (name === 'job_title') {
+            if (value === 'Other') {
+                setIsCustomRole(true);
+            } else {
+                setIsCustomRole(false);
+                setCustomJobTitle('');
+            }
+        }
+    };
+
+    const handleLocationChange = (e) => {
+        const value = e.target.value;
+        setFormData(prev => ({ ...prev, location: value }));
+
+        if (value.length >= 2) {
+            const filtered = US_CITIES.filter(city =>
+                city.toLowerCase().includes(value.toLowerCase())
+            );
+            setLocationSuggestions(filtered);
+            setShowLocationSuggestions(filtered.length > 0);
+        } else {
+            setShowLocationSuggestions(false);
+        }
+    };
+
+    const selectLocation = (city) => {
+        setFormData(prev => ({ ...prev, location: city }));
+        setShowLocationSuggestions(false);
     };
 
     const handleResumeToggle = (resumeId) => {
@@ -108,8 +241,11 @@ function ApplicationForm() {
         setSaving(true);
 
         try {
+            const finalJobTitle = isCustomRole ? customJobTitle : formData.job_title;
+
             const payload = {
                 ...formData,
+                job_title: finalJobTitle,
                 salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
                 salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
                 interview_round: formData.interview_round ? parseInt(formData.interview_round) : 0
@@ -130,9 +266,9 @@ function ApplicationForm() {
             if (response.ok) {
                 navigate('/applications');
             } else {
-                setError(data.error);
+                setError(data.error || 'Failed to save');
             }
-        } catch (err) {
+        } catch {
             setError('Failed to save application');
         } finally {
             setSaving(false);
@@ -141,9 +277,9 @@ function ApplicationForm() {
 
     if (loading) {
         return (
-            <div className="form-page">
+            <div className="form-page" aria-busy="true">
                 <div className="loading-container">
-                    <div className="spinner"></div>
+                    <div className="spinner" />
                 </div>
             </div>
         );
@@ -153,11 +289,11 @@ function ApplicationForm() {
         <div className="form-page">
             <div className="form-container">
                 <div className="form-header">
-                    <Link to="/applications" className="back-link">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <Link to="/applications" className="back-link" aria-label="Back to applications">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" />
                         </svg>
-                        Back to Applications
+                        Back
                     </Link>
                     <h1 className="form-title">
                         {isEditing ? 'Edit Application' : 'New Application'}
@@ -165,16 +301,15 @@ function ApplicationForm() {
                 </div>
 
                 {error && (
-                    <div className="error-banner">{error}</div>
+                    <div className="error-banner" role="alert">{error}</div>
                 )}
 
                 <form onSubmit={handleSubmit} className="application-form">
-                    {/* Company & Position */}
-                    <div className="form-section">
-                        <h2 className="section-title">Job Information</h2>
+                    {/* Quick Info - Required Fields */}
+                    <div className="form-section form-section-quick">
                         <div className="form-row">
                             <div className="form-group">
-                                <label htmlFor="company_name" className="form-label">Company Name *</label>
+                                <label htmlFor="company_name" className="form-label">Company *</label>
                                 <input
                                     id="company_name"
                                     name="company_name"
@@ -183,82 +318,88 @@ function ApplicationForm() {
                                     value={formData.company_name}
                                     onChange={handleChange}
                                     required
-                                    placeholder="e.g. Google"
+                                    placeholder="Google, Meta, Amazon..."
+                                    autoFocus
                                 />
                             </div>
                             <div className="form-group">
-                                <label htmlFor="job_title" className="form-label">Job Title *</label>
-                                <input
+                                <label htmlFor="job_title" className="form-label">Role *</label>
+                                <select
                                     id="job_title"
                                     name="job_title"
-                                    type="text"
                                     className="form-input"
                                     value={formData.job_title}
                                     onChange={handleChange}
                                     required
-                                    placeholder="e.g. Software Engineer"
-                                />
+                                >
+                                    <option value="">Select role...</option>
+                                    {JOB_ROLES.map(role => (
+                                        <option key={role} value={role}>{role}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
-                        <div className="form-row">
+                        {/* Custom role input */}
+                        {isCustomRole && (
                             <div className="form-group">
+                                <label htmlFor="custom_job_title" className="form-label">Custom Role Title *</label>
+                                <input
+                                    id="custom_job_title"
+                                    type="text"
+                                    className="form-input"
+                                    value={customJobTitle}
+                                    onChange={(e) => setCustomJobTitle(e.target.value)}
+                                    required
+                                    placeholder="Enter custom job title"
+                                />
+                            </div>
+                        )}
+
+                        <div className="form-row form-row-3">
+                            <div className="form-group form-group-location">
                                 <label htmlFor="location" className="form-label">Location</label>
                                 <input
                                     id="location"
-                                    name="location"
+                                    ref={locationInputRef}
                                     type="text"
                                     className="form-input"
                                     value={formData.location}
-                                    onChange={handleChange}
-                                    placeholder="e.g. San Francisco, CA"
+                                    onChange={handleLocationChange}
+                                    onFocus={() => formData.location.length >= 2 && setShowLocationSuggestions(locationSuggestions.length > 0)}
+                                    onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
+                                    placeholder="Start typing..."
+                                    autoComplete="off"
                                 />
+                                {showLocationSuggestions && (
+                                    <ul className="location-suggestions" role="listbox">
+                                        {locationSuggestions.slice(0, 6).map(city => (
+                                            <li
+                                                key={city}
+                                                role="option"
+                                                onClick={() => selectLocation(city)}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                            >
+                                                {city}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
                             <div className="form-group">
-                                <label htmlFor="job_url" className="form-label">Job URL</label>
-                                <input
-                                    id="job_url"
-                                    name="job_url"
-                                    type="url"
+                                <label htmlFor="experience_level" className="form-label">Experience</label>
+                                <select
+                                    id="experience_level"
+                                    name="experience_level"
                                     className="form-input"
-                                    value={formData.job_url}
+                                    value={formData.experience_level}
                                     onChange={handleChange}
-                                    placeholder="https://..."
-                                />
+                                >
+                                    {EXPERIENCE_LEVELS.map(level => (
+                                        <option key={level} value={level}>{level}</option>
+                                    ))}
+                                </select>
                             </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="job_description" className="form-label">Job Description</label>
-                            <textarea
-                                id="job_description"
-                                name="job_description"
-                                className="form-input form-textarea"
-                                value={formData.job_description}
-                                onChange={handleChange}
-                                rows={4}
-                                placeholder="Paste the job description here..."
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="job_requirements" className="form-label">Job Requirements</label>
-                            <textarea
-                                id="job_requirements"
-                                name="job_requirements"
-                                className="form-input form-textarea"
-                                value={formData.job_requirements}
-                                onChange={handleChange}
-                                rows={3}
-                                placeholder="Key requirements and qualifications..."
-                            />
-                        </div>
-                    </div>
-
-                    {/* Application Details */}
-                    <div className="form-section">
-                        <h2 className="section-title">Application Details</h2>
-                        <div className="form-row form-row-4">
                             <div className="form-group">
                                 <label htmlFor="status" className="form-label">Status</label>
                                 <select
@@ -273,21 +414,9 @@ function ApplicationForm() {
                                     ))}
                                 </select>
                             </div>
-                            <div className="form-group">
-                                <label htmlFor="application_source" className="form-label">Source</label>
-                                <select
-                                    id="application_source"
-                                    name="application_source"
-                                    className="form-input"
-                                    value={formData.application_source}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Select source</option>
-                                    {SOURCES.map(s => (
-                                        <option key={s} value={s}>{s}</option>
-                                    ))}
-                                </select>
-                            </div>
+                        </div>
+
+                        <div className="form-row">
                             <div className="form-group">
                                 <label htmlFor="application_date" className="form-label">Applied Date</label>
                                 <input
@@ -300,66 +429,49 @@ function ApplicationForm() {
                                 />
                             </div>
                             <div className="form-group">
-                                <label htmlFor="follow_up_date" className="form-label">Follow-up Date</label>
-                                <input
-                                    id="follow_up_date"
-                                    name="follow_up_date"
-                                    type="date"
+                                <label htmlFor="application_source" className="form-label">Source</label>
+                                <select
+                                    id="application_source"
+                                    name="application_source"
                                     className="form-input"
-                                    value={formData.follow_up_date}
+                                    value={formData.application_source}
                                     onChange={handleChange}
-                                />
+                                >
+                                    <option value="">Select...</option>
+                                    {SOURCES.map(s => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
+                                </select>
                             </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="salary_min" className="form-label">Salary Min ($)</label>
-                                <input
-                                    id="salary_min"
-                                    name="salary_min"
-                                    type="number"
-                                    className="form-input"
-                                    value={formData.salary_min}
-                                    onChange={handleChange}
-                                    placeholder="80000"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="salary_max" className="form-label">Salary Max ($)</label>
-                                <input
-                                    id="salary_max"
-                                    name="salary_max"
-                                    type="number"
-                                    className="form-input"
-                                    value={formData.salary_max}
-                                    onChange={handleChange}
-                                    placeholder="120000"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label htmlFor="notes" className="form-label">Notes</label>
-                            <textarea
-                                id="notes"
-                                name="notes"
-                                className="form-input form-textarea"
-                                value={formData.notes}
-                                onChange={handleChange}
-                                rows={3}
-                                placeholder="Any additional notes..."
-                            />
                         </div>
                     </div>
+
+                    {/* Resume Selection - Prominent */}
+                    {resumes.length > 0 && (
+                        <div className="form-section">
+                            <h2 className="section-title">Resume Used</h2>
+                            <div className="resume-selector">
+                                {resumes.map(resume => (
+                                    <label key={resume.id} className={`resume-option ${formData.resume_ids.includes(resume.id) ? 'selected' : ''}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.resume_ids.includes(resume.id)}
+                                            onChange={() => handleResumeToggle(resume.id)}
+                                        />
+                                        <span className="resume-name">{resume.original_name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Interview Tracking */}
                     {formData.status === 'Interview' && (
                         <div className="form-section">
-                            <h2 className="section-title">Interview Tracking</h2>
+                            <h2 className="section-title">Interview Progress</h2>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label htmlFor="interview_round" className="form-label">Interview Round</label>
+                                    <label htmlFor="interview_round" className="form-label">Round</label>
                                     <select
                                         id="interview_round"
                                         name="interview_round"
@@ -375,6 +487,17 @@ function ApplicationForm() {
                                         <option value={5}>Round 5+</option>
                                     </select>
                                 </div>
+                                <div className="form-group">
+                                    <label htmlFor="follow_up_date" className="form-label">Next Interview Date</label>
+                                    <input
+                                        id="follow_up_date"
+                                        name="follow_up_date"
+                                        type="date"
+                                        className="form-input"
+                                        value={formData.follow_up_date}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
                             <div className="form-group">
                                 <label htmlFor="interview_notes" className="form-label">Interview Notes</label>
@@ -384,38 +507,106 @@ function ApplicationForm() {
                                     className="form-input form-textarea"
                                     value={formData.interview_notes}
                                     onChange={handleChange}
-                                    rows={3}
-                                    placeholder="Notes from interviews, feedback, next steps..."
+                                    rows={2}
+                                    placeholder="Interviewer names, topics covered, next steps..."
                                 />
                             </div>
                         </div>
                     )}
 
-                    {/* Resume Selection */}
+                    {/* Optional Details - Collapsible */}
                     <div className="form-section">
-                        <h2 className="section-title">Linked Resumes</h2>
-                        {resumes.length === 0 ? (
-                            <div className="no-resumes">
-                                <p>No resumes uploaded yet.</p>
-                                <Link to="/resumes" className="btn btn-secondary">Upload Resume</Link>
-                            </div>
-                        ) : (
-                            <div className="resume-selector">
-                                {resumes.map(resume => (
-                                    <label key={resume.id} className="resume-option">
+                        <button
+                            type="button"
+                            className="section-toggle"
+                            onClick={() => setShowDetails(!showDetails)}
+                            aria-expanded={showDetails}
+                        >
+                            <span>{showDetails ? '−' : '+'}</span>
+                            More Details (optional)
+                        </button>
+
+                        {showDetails && (
+                            <div className="section-content">
+                                <div className="form-group">
+                                    <label htmlFor="job_url" className="form-label">Job URL</label>
+                                    <input
+                                        id="job_url"
+                                        name="job_url"
+                                        type="url"
+                                        className="form-input"
+                                        value={formData.job_url}
+                                        onChange={handleChange}
+                                        placeholder="https://..."
+                                    />
+                                </div>
+
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="salary_min" className="form-label">Salary Min ($)</label>
                                         <input
-                                            type="checkbox"
-                                            checked={formData.resume_ids.includes(resume.id)}
-                                            onChange={() => handleResumeToggle(resume.id)}
+                                            id="salary_min"
+                                            name="salary_min"
+                                            type="number"
+                                            className="form-input"
+                                            value={formData.salary_min}
+                                            onChange={handleChange}
+                                            placeholder="80000"
                                         />
-                                        <div className="resume-info">
-                                            <span className="resume-name">{resume.original_name}</span>
-                                            <span className="resume-date">
-                                                {new Date(resume.uploaded_at).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    </label>
-                                ))}
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="salary_max" className="form-label">Salary Max ($)</label>
+                                        <input
+                                            id="salary_max"
+                                            name="salary_max"
+                                            type="number"
+                                            className="form-input"
+                                            value={formData.salary_max}
+                                            onChange={handleChange}
+                                            placeholder="150000"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="job_description" className="form-label">Job Description</label>
+                                    <textarea
+                                        id="job_description"
+                                        name="job_description"
+                                        className="form-input form-textarea"
+                                        value={formData.job_description}
+                                        onChange={handleChange}
+                                        rows={3}
+                                        placeholder="Paste job description..."
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="notes" className="form-label">Notes</label>
+                                    <textarea
+                                        id="notes"
+                                        name="notes"
+                                        className="form-input form-textarea"
+                                        value={formData.notes}
+                                        onChange={handleChange}
+                                        rows={2}
+                                        placeholder="Your notes..."
+                                    />
+                                </div>
+
+                                {formData.status !== 'Interview' && (
+                                    <div className="form-group">
+                                        <label htmlFor="follow_up_date" className="form-label">Follow-up Date</label>
+                                        <input
+                                            id="follow_up_date"
+                                            name="follow_up_date"
+                                            type="date"
+                                            className="form-input"
+                                            value={formData.follow_up_date}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -426,11 +617,11 @@ function ApplicationForm() {
                         <button type="submit" className="btn btn-primary" disabled={saving}>
                             {saving ? (
                                 <>
-                                    <div className="spinner"></div>
-                                    Saving...
+                                    <div className="spinner" aria-hidden="true" />
+                                    <span>Saving...</span>
                                 </>
                             ) : (
-                                isEditing ? 'Save Changes' : 'Create Application'
+                                isEditing ? 'Save Changes' : 'Add Application'
                             )}
                         </button>
                     </div>
