@@ -225,7 +225,3 @@ applytrack-pro/
 5. Submit a pull request
 
 ---
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
