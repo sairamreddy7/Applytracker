@@ -9,6 +9,7 @@ const applicationsRoutes = require('./routes/applications');
 const resumesRoutes = require('./routes/resumes');
 const analyticsRoutes = require('./routes/analytics');
 const exportRoutes = require('./routes/export');
+const userRoutes = require('./routes/user');
 
 // ============================================
 // Environment Validation
@@ -57,6 +58,7 @@ app.use('/api/applications', applicationsRoutes);
 app.use('/api/resumes', resumesRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/export', exportRoutes);
+app.use('/api/user', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

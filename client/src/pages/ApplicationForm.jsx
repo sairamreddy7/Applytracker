@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import './ApplicationForm.css';
 
-const STATUSES = ['Applied', 'Interview', 'Offer', 'Rejected', 'Ghosted'];
-const SOURCES = ['LinkedIn', 'Indeed', 'Company Website', 'Referral', 'Job Board', 'Recruiter', 'Other'];
+const STATUSES = ['Applied', 'Assessment', 'Interview', 'Offer', 'Rejected', 'Ghosted'];
+const SOURCES = ['LinkedIn', 'Indeed', 'Jobright', 'Company Website', 'Referral', 'Job Board', 'Recruiter', 'Other'];
 
 // CS/Tech job roles for dropdown
 const JOB_ROLES = [
@@ -93,12 +93,12 @@ function ApplicationForm() {
         company_name: '',
         job_title: '',
         experience_level: 'Entry Level / New Grad',
+        application_email: '',
         job_description: '',
         job_requirements: '',
         location: '',
         job_url: '',
-        salary_min: '',
-        salary_max: '',
+        salary: '',
         application_date: new Date().toISOString().split('T')[0],
         application_source: '',
         status: 'Applied',
@@ -110,6 +110,7 @@ function ApplicationForm() {
     });
 
     const [resumes, setResumes] = useState([]);
+    const [userEmails, setUserEmails] = useState([]);
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -125,6 +126,7 @@ function ApplicationForm() {
 
     useEffect(() => {
         fetchResumes();
+        fetchUserEmails();
         if (isEditing) {
             fetchApplication();
         }
@@ -142,6 +144,18 @@ function ApplicationForm() {
         }
     };
 
+    const fetchUserEmails = async () => {
+        try {
+            const response = await fetch('/api/user/emails', { credentials: 'include' });
+            const data = await response.json();
+            if (response.ok) {
+                setUserEmails(data.emails || []);
+            }
+        } catch {
+            // Silent fail - emails are optional
+        }
+    };
+
     const fetchApplication = async () => {
         try {
             const response = await fetch(`/api/applications/${id}`, { credentials: 'include' });
@@ -156,12 +170,12 @@ function ApplicationForm() {
                     company_name: app.company_name || '',
                     job_title: isCustom ? 'Other' : jobTitle,
                     experience_level: app.experience_level || 'Entry Level / New Grad',
+                    application_email: app.application_email || '',
                     job_description: app.job_description || '',
                     job_requirements: app.job_requirements || '',
                     location: app.location || '',
                     job_url: app.job_url || '',
-                    salary_min: app.salary_min || '',
-                    salary_max: app.salary_max || '',
+                    salary: app.salary || '',
                     application_date: app.application_date ? app.application_date.split('T')[0] : '',
                     application_source: app.application_source || '',
                     status: app.status || 'Applied',
@@ -246,8 +260,6 @@ function ApplicationForm() {
             const payload = {
                 ...formData,
                 job_title: finalJobTitle,
-                salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
-                salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
                 interview_round: formData.interview_round ? parseInt(formData.interview_round) : 0
             };
 
@@ -444,6 +456,52 @@ function ApplicationForm() {
                                 </select>
                             </div>
                         </div>
+
+                        {/* Email Used for Application */}
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="application_email" className="form-label">Email Used</label>
+                                {userEmails.length > 0 ? (
+                                    <select
+                                        id="application_email"
+                                        name="application_email"
+                                        className="form-input"
+                                        value={formData.application_email}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Select email...</option>
+                                        {userEmails.map(e => (
+                                            <option key={e.id} value={e.email}>{e.email}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <input
+                                        id="application_email"
+                                        name="application_email"
+                                        type="email"
+                                        className="form-input"
+                                        value={formData.application_email}
+                                        onChange={handleChange}
+                                        placeholder="your.email@example.com"
+                                    />
+                                )}
+                                <span className="form-hint">
+                                    {userEmails.length === 0 && "Add emails in Settings to select from dropdown"}
+                                </span>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="salary" className="form-label">Salary Range</label>
+                                <input
+                                    id="salary"
+                                    name="salary"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.salary}
+                                    onChange={handleChange}
+                                    placeholder="e.g. $120k-$150k"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Resume Selection - Prominent */}
@@ -539,33 +597,6 @@ function ApplicationForm() {
                                         onChange={handleChange}
                                         placeholder="https://..."
                                     />
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="salary_min" className="form-label">Salary Min ($)</label>
-                                        <input
-                                            id="salary_min"
-                                            name="salary_min"
-                                            type="number"
-                                            className="form-input"
-                                            value={formData.salary_min}
-                                            onChange={handleChange}
-                                            placeholder="80000"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="salary_max" className="form-label">Salary Max ($)</label>
-                                        <input
-                                            id="salary_max"
-                                            name="salary_max"
-                                            type="number"
-                                            className="form-input"
-                                            value={formData.salary_max}
-                                            onChange={handleChange}
-                                            placeholder="150000"
-                                        />
-                                    </div>
                                 </div>
 
                                 <div className="form-group">
