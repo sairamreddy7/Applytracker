@@ -31,5 +31,19 @@ deploymentTarget = "cloudrun"
 build = ["sh", "-c", "npm run install-all && npm run build"]
 
 [[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+DATABASE_URL = "postgresql://postgres:password@helium/heliumdb?sslmode=disable"
+JWT_SECRET = "applytracker-secure-secret-key-2026"
+NODE_ENV = "production"
+
+[agent]
+expertMode = true
