@@ -1,0 +1,236 @@
+/* Resumes Page Styles */
+
+.resumes-page {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+.resumes-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Upload Button */
+.btn.uploading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.file-input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.upload-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--foreground-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.upload-info svg {
+    color: var(--primary-400);
+}
+
+/* Upload Progress */
+.upload-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--background-secondary);
+    border-radius: var(--radius-md);
+}
+
+.upload-progress .progress-bar {
+    flex: 1;
+}
+
+.progress-text {
+    font-size: 0.85rem;
+    color: var(--foreground-muted);
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Success Banner */
+.success-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--radius-md);
+    padding: 0.875rem 1rem;
+    color: var(--success-500);
+    margin-bottom: 1rem;
+}
+
+/* Error Banner Enhancement */
+.error-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-md);
+    padding: 0.875rem 1rem;
+    color: #fca5a5;
+    margin-bottom: 1rem;
+}
+
+.error-banner span,
+.success-banner span {
+    flex: 1;
+}
+
+.error-banner .btn,
+.success-banner .btn {
+    flex-shrink: 0;
+}
+
+/* Resumes List */
+.resumes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Resume Card */
+.resume-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--background-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    position: relative;
+    transition: all var(--transition-normal);
+}
+
+.resume-card:hover {
+    border-color: var(--border-light);
+}
+
+.resume-icon {
+    flex-shrink: 0;
+}
+
+.file-icon {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border-radius: var(--radius-md);
+}
+
+.file-icon.pdf {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.file-icon.doc {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.resume-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.resume-name {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resume-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--foreground-muted);
+    font-size: 0.8rem;
+}
+
+.resume-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.resume-actions .btn {
+    padding: 0.5rem;
+}
+
+/* Delete Overlay */
+.delete-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 15, 26, 0.95);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.delete-overlay p {
+    font-weight: 500;
+}
+
+.delete-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.delete-actions .btn-danger {
+    background: var(--error-600);
+    color: white !important;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    background: var(--background-secondary);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-header .btn {
+        width: 100%;
+    }
+
+    .resume-card {
+        flex-wrap: wrap;
+    }
+
+    .resume-details {
+        flex: 1 1 100%;
+        order: 2;
+        margin-top: 0.5rem;
+    }
+
+    .resume-actions {
+        order: 1;
+        margin-left: auto;
+    }
+}
