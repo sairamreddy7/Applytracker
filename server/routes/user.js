@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { authenticateToken } = require('../middleware/auth');
 const db = require('../config/db');
 
@@ -101,6 +102,49 @@ router.put('/emails/:id/primary', async (req, res) => {
     } catch (error) {
         console.error('Set primary email error:', error);
         res.status(500).json({ error: 'Failed to set primary email' });
+    }
+});
+
+// Change password
+router.put('/password', async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Current and new password are required' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'New password must be at least 8 characters' });
+        }
+
+        // Get current user with password
+        const userResult = await db.query(
+            'SELECT password_hash FROM users WHERE id = $1',
+            [req.user.id]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Verify current password
+        const validPassword = await bcrypt.compare(currentPassword, userResult.rows[0].password_hash);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+
+        // Hash and update new password
+        const newHash = await bcrypt.hash(newPassword, 10);
+        await db.query(
+            'UPDATE users SET password_hash = $1 WHERE id = $2',
+            [newHash, req.user.id]
+        );
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: 'Failed to change password' });
     }
 });
 

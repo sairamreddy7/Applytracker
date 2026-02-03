@@ -167,3 +167,41 @@
         justify-content: flex-end;
     }
 }
+
+/* Password Form */
+.password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+}
+
+.password-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.password-form .form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.password-form .form-input {
+    padding: 0.75rem 1rem;
+    background: var(--background-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--foreground);
+    font-size: 0.95rem;
+}
+
+.password-form .form-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+}
+
+.form-hint {
+    font-size: 0.8rem;
+    color: var(--foreground-muted);
+}

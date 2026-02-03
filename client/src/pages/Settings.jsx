@@ -9,6 +9,12 @@ function Settings() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    // Password change state
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
+
     useEffect(() => {
         fetchEmails();
     }, []);
@@ -96,6 +102,47 @@ function Settings() {
         }
     };
 
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setError('');
+        setSuccess('');
+
+        if (newPassword !== confirmPassword) {
+            setError('New passwords do not match');
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters');
+            return;
+        }
+
+        setChangingPassword(true);
+
+        try {
+            const response = await fetch('/api/user/password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                setSuccess('Password changed successfully');
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+            } else {
+                setError(data.error || 'Failed to change password');
+            }
+        } catch {
+            setError('Failed to change password');
+        } finally {
+            setChangingPassword(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="settings-page">
@@ -170,6 +217,52 @@ function Settings() {
                             ))
                         )}
                     </div>
+                </section>
+
+                {/* Change Password Section */}
+                <section className="settings-section">
+                    <h2 className="section-title">🔐 Change Password</h2>
+                    <p className="section-description">
+                        Update your account password.
+                    </p>
+
+                    <form onSubmit={handleChangePassword} className="password-form">
+                        <div className="form-group">
+                            <label className="form-label">Current Password</label>
+                            <input
+                                type="password"
+                                className="form-input"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">New Password</label>
+                            <input
+                                type="password"
+                                className="form-input"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                minLength={8}
+                                required
+                            />
+                            <span className="form-hint">Must be at least 8 characters</span>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Confirm New Password</label>
+                            <input
+                                type="password"
+                                className="form-input"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <button type="submit" className="btn btn-primary" disabled={changingPassword}>
+                            {changingPassword ? 'Changing...' : 'Change Password'}
+                        </button>
+                    </form>
                 </section>
             </div>
         </div>
