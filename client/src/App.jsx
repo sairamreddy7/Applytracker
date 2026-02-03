@@ -9,6 +9,7 @@ import ApplicationForm from './pages/ApplicationForm';
 import Resumes from './pages/Resumes';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import AITools from './pages/AITools';
 
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
@@ -127,6 +128,15 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <Settings />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="ai-tools"
+                    element={
+                        <ProtectedRoute>
+                            <AITools />
                         </ProtectedRoute>
                     }
                 />
