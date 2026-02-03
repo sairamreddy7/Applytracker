@@ -266,7 +266,7 @@ function ApplicationForm() {
                 const resumeFormData = new FormData();
                 resumeFormData.append('resume', newResumeFile);
 
-                const resumeRes = await fetch('/api/resumes', {
+                const resumeRes = await fetch('/api/resumes/upload', {
                     method: 'POST',
                     credentials: 'include',
                     body: resumeFormData
