@@ -1,4 +1,6 @@
+// Load environment variables - try multiple locations
 require('dotenv').config({ path: '../.env' });
+require('dotenv').config(); // Also try current directory
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
