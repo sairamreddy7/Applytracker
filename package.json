@@ -8,10 +8,14 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",
-    "build": "cd client && npm run build",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+    "build": "cd client && npm install --include=dev && npm run build",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install --include=dev"
   },
-  "keywords": ["job-tracker", "application-tracker", "career"],
+  "keywords": [
+    "job-tracker",
+    "application-tracker",
+    "career"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
