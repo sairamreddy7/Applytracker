@@ -116,6 +116,9 @@ function ApplicationForm() {
     const [error, setError] = useState('');
     const [showDetails, setShowDetails] = useState(false);
 
+    // New resume upload for this application
+    const [newResumeFile, setNewResumeFile] = useState(null);
+
     // Location autocomplete
     const [locationSuggestions, setLocationSuggestions] = useState([]);
     const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
@@ -257,10 +260,31 @@ function ApplicationForm() {
         try {
             const finalJobTitle = isCustomRole ? customJobTitle : formData.job_title;
 
+            // If uploading a new resume, first upload it
+            let newResumeId = null;
+            if (newResumeFile) {
+                const resumeFormData = new FormData();
+                resumeFormData.append('resume', newResumeFile);
+
+                const resumeRes = await fetch('/api/resumes', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: resumeFormData
+                });
+
+                if (resumeRes.ok) {
+                    const resumeData = await resumeRes.json();
+                    newResumeId = resumeData.resume.id;
+                }
+            }
+
             const payload = {
                 ...formData,
                 job_title: finalJobTitle,
-                interview_round: formData.interview_round ? parseInt(formData.interview_round) : 0
+                interview_round: formData.interview_round ? parseInt(formData.interview_round) : 0,
+                resume_ids: newResumeId
+                    ? [...formData.resume_ids, newResumeId]
+                    : formData.resume_ids
             };
 
             const response = await fetch(
@@ -522,6 +546,54 @@ function ApplicationForm() {
                             </div>
                         </div>
                     )}
+
+                    {/* Resume Section - Upload or Select */}
+                    <div className="form-section">
+                        <h2 className="section-title">📄 Resume for This Application</h2>
+
+                        {/* Upload New Resume */}
+                        <div className="upload-resume-section">
+                            <label className="file-upload-label">
+                                <input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx"
+                                    onChange={(e) => setNewResumeFile(e.target.files[0])}
+                                    className="file-input"
+                                />
+                                <span className="upload-btn">
+                                    {newResumeFile ? `📎 ${newResumeFile.name}` : '+ Upload New Resume'}
+                                </span>
+                            </label>
+                            {newResumeFile && (
+                                <button
+                                    type="button"
+                                    className="btn btn-ghost btn-sm"
+                                    onClick={() => setNewResumeFile(null)}
+                                >
+                                    Remove
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Or Select Existing */}
+                        {resumes.length > 0 && (
+                            <div className="existing-resumes">
+                                <p className="or-divider">— or select from existing —</p>
+                                <div className="resume-selector">
+                                    {resumes.map(resume => (
+                                        <label key={resume.id} className={`resume-option ${formData.resume_ids.includes(resume.id) ? 'selected' : ''}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.resume_ids.includes(resume.id)}
+                                                onChange={() => handleResumeToggle(resume.id)}
+                                            />
+                                            <span className="resume-name">{resume.original_name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Interview Tracking */}
                     {formData.status === 'Interview' && (

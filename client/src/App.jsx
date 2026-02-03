@@ -8,6 +8,7 @@ import Applications from './pages/Applications';
 import ApplicationForm from './pages/ApplicationForm';
 import Resumes from './pages/Resumes';
 import Analytics from './pages/Analytics';
+import Settings from './pages/Settings';
 
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
@@ -117,6 +118,15 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <Analytics />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="settings"
+                    element={
+                        <ProtectedRoute>
+                            <Settings />
                         </ProtectedRoute>
                     }
                 />

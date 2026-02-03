@@ -16,6 +16,29 @@
     border-bottom: 1px solid var(--border);
 }
 
+[data-theme="light"] .header {
+    background: rgba(248, 250, 252, 0.9);
+}
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--background-tertiary);
+    border-radius: 50%;
+    color: var(--foreground-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+    background: var(--primary-500);
+    color: white;
+}
+
 .header-container {
     max-width: 1200px;
     margin: 0 auto;

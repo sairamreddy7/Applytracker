@@ -5,6 +5,7 @@ import './Dashboard.css';
 
 const STATUS_COLORS = {
     Applied: 'blue',
+    Assessment: 'cyan',
     Interview: 'purple',
     Offer: 'green',
     Rejected: 'red',
@@ -59,10 +60,12 @@ function Dashboard() {
     };
 
     const statusCards = [
-        { label: 'Applied', count: parseInt(stats.applied) || 0, color: 'blue' },
-        { label: 'Interview', count: parseInt(stats.interview) || 0, color: 'purple' },
-        { label: 'Offer', count: parseInt(stats.offer) || 0, color: 'green' },
-        { label: 'Rejected', count: parseInt(stats.rejected) || 0, color: 'red' }
+        { label: 'Total', count: parseInt(stats.total) || 0, color: 'gradient', icon: '📊' },
+        { label: 'Applied', count: parseInt(stats.applied) || 0, color: 'blue', icon: '📤' },
+        { label: 'Assessment', count: parseInt(stats.assessment) || 0, color: 'cyan', icon: '📝' },
+        { label: 'Interview', count: parseInt(stats.interview) || 0, color: 'purple', icon: '💬' },
+        { label: 'Offer', count: parseInt(stats.offer) || 0, color: 'green', icon: '🎉' },
+        { label: 'Rejected', count: parseInt(stats.rejected) || 0, color: 'red', icon: '❌' }
     ];
 
     if (loading) {
@@ -103,6 +106,7 @@ function Dashboard() {
                     <div className="stats-grid">
                         {statusCards.map((card) => (
                             <div key={card.label} className={`stat-card stat-card-${card.color}`}>
+                                <div className="stat-icon">{card.icon}</div>
                                 <div className="stat-count">{card.count}</div>
                                 <div className="stat-label">{card.label}</div>
                             </div>

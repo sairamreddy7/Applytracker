@@ -83,10 +83,23 @@
     background: linear-gradient(90deg, #ef4444, #f87171);
 }
 
+.stat-card-cyan::before {
+    background: linear-gradient(90deg, #06b6d4, #22d3ee);
+}
+
+.stat-card-gradient::before {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+}
+
 .stat-card:hover {
     transform: translateY(-4px);
     border-color: var(--border-light);
     box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .stat-count {
@@ -110,6 +123,17 @@
 
 .stat-card-red .stat-count {
     color: #f87171;
+}
+
+.stat-card-cyan .stat-count {
+    color: #22d3ee;
+}
+
+.stat-card-gradient .stat-count {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .stat-label {
