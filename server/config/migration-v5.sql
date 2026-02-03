@@ -25,7 +25,7 @@ WHERE salary IS NULL AND (salary_min IS NOT NULL OR salary_max IS NOT NULL);
 -- Create user_emails table for email settings
 CREATE TABLE IF NOT EXISTS user_emails (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     email VARCHAR(255) NOT NULL,
     is_primary BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
