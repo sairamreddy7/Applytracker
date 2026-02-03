@@ -452,6 +452,19 @@ function ApplicationForm() {
                             </div>
                         </div>
 
+                        <div className="form-group">
+                            <label htmlFor="job_url" className="form-label">Job URL</label>
+                            <input
+                                id="job_url"
+                                name="job_url"
+                                type="url"
+                                className="form-input"
+                                value={formData.job_url}
+                                onChange={handleChange}
+                                placeholder="https://..."
+                            />
+                        </div>
+
                         <div className="form-row">
                             <div className="form-group">
                                 <label htmlFor="application_date" className="form-label">Applied Date</label>
@@ -595,6 +608,22 @@ function ApplicationForm() {
                         )}
                     </div>
 
+                    {/* Job Description */}
+                    <div className="form-section">
+                        <h2 className="section-title">📋 Job Description</h2>
+                        <div className="form-group">
+                            <textarea
+                                id="job_description"
+                                name="job_description"
+                                className="form-input form-textarea"
+                                value={formData.job_description}
+                                onChange={handleChange}
+                                rows={4}
+                                placeholder="Paste the job description here..."
+                            />
+                        </div>
+                    </div>
+
                     {/* Interview Tracking */}
                     {formData.status === 'Interview' && (
                         <div className="form-section">
@@ -658,32 +687,6 @@ function ApplicationForm() {
 
                         {showDetails && (
                             <div className="section-content">
-                                <div className="form-group">
-                                    <label htmlFor="job_url" className="form-label">Job URL</label>
-                                    <input
-                                        id="job_url"
-                                        name="job_url"
-                                        type="url"
-                                        className="form-input"
-                                        value={formData.job_url}
-                                        onChange={handleChange}
-                                        placeholder="https://..."
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="job_description" className="form-label">Job Description</label>
-                                    <textarea
-                                        id="job_description"
-                                        name="job_description"
-                                        className="form-input form-textarea"
-                                        value={formData.job_description}
-                                        onChange={handleChange}
-                                        rows={3}
-                                        placeholder="Paste job description..."
-                                    />
-                                </div>
-
                                 <div className="form-group">
                                     <label htmlFor="notes" className="form-label">Notes</label>
                                     <textarea
